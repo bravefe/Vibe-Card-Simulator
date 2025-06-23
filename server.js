@@ -154,7 +154,7 @@ io.on('connection', (socket) => {
                 const dx = card.x - deck.x;
                 const dy = card.y - deck.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
-                if (distance < 30) {
+                if (distance < 15) {
                     // Merge card into deck at top or bottom
                     if (data.deckAddMode === 'top') {
                         deck.cards.push(card.src);

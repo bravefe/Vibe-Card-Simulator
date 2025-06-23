@@ -375,7 +375,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
-    if (e.key >= '1' && e.key <= '9' && selectedElement && selectedElement.classList.contains('card')) {
+    if (e.key >= '0' && e.key <= '9' && selectedElement && selectedElement.classList.contains('card')) {
         e.preventDefault();
         const layer = parseInt(e.key);
         socket.emit('changeLayer', { id: selectedElement.id, layer});
