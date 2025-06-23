@@ -1,0 +1,236 @@
+body {
+    font-family: sans-serif;
+    margin: 0;
+    overflow: hidden;
+    background-color: #3d3d3d;
+}
+
+#controls {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    border-radius: 5px;
+    z-index: 1000;
+}
+
+#controls form {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#controls label {
+    margin-right: 4px;
+    white-space: nowrap;
+}
+
+#controls input[type="file"] {
+    margin-right: 8px;
+}
+
+#game-board {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background-color: #004d00; /* Green felt color */
+    background-image: radial-gradient(circle, #006a00, #004d00);
+}
+
+.card, .deck {
+    position: absolute;
+    width: 100px;
+    height: 140px;
+    border: 1px solid #000;
+    border-radius: 8px;
+    box-shadow: 3px 3px 7px rgba(0, 0, 0, 0.5);
+    background-size: cover;
+    background-position: center;
+    position: absolute;
+    /* cursor: grab; */
+    user-select: none;
+    transition: transform 0.2s ease-in-out; /* For rotation */
+}
+
+.deck:active{
+    cursor: grabbing;
+    z-index: 999;
+}
+.card:active {
+    cursor: zoom-in;
+    z-index: 999;
+}
+
+.deck::after { /* To show card count on deck */
+    content: attr(data-count);
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #fff;
+    color: #000;
+    padding: 2px 5px;
+    border-radius: 10px;
+    font-size: 12px;
+}
+
+.shuffle-btn {
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    font-size: 18px;
+    padding: 2px 10px;
+    border-radius: 8px;
+    border: 1px solid #bbb;
+    background: #fff;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    outline: none;
+}
+.shuffle-btn:hover, .shuffle-btn:focus {
+    background: #adadad;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    /* No scale transform */
+}
+.shuffle-btn:active {
+    background: #8d8d8d;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    /* No scale transform */
+}
+
+#deck-search-modal {
+    /* min-width: 140px; */
+    width: 60px;
+    padding: 10px 0px;
+    border-radius: 10px;
+    border: 2px solid #ccc;
+    background: #fff;
+    box-shadow: 0 2px 12px #0008;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+#deck-search-list {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#deck-search-list > div {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    display: flex;
+}
+
+#deck-search-list img {
+    width: 100%;
+    height: 133%;           /* Set a fixed height for all images */
+    /* aspect-ratio: 5/7; */
+    object-fit: cover;       /* Crop instead of squish */
+    border-radius: 6px;
+    border: 1px solid #bbb;
+    background: #eee;
+    cursor: pointer;
+    display: block;
+    box-sizing: border-box;
+}
+
+.highlight-blue {
+    box-shadow: 0 0 16px 6px #2196f3, 3px 3px 7px rgba(0,0,0,0.5);
+    border: 2px solid #2196f3 !important;
+}
+.highlight-yellow {
+    box-shadow: 0 0 16px 6px #ffe066, 3px 3px 7px rgba(0,0,0,0.5);
+    border: 2px solid #ffe066 !important;
+}
+
+.hidden-card {
+    border: 2px solid red !important;
+    box-shadow: 0 0 16px 6px #ff3333, 3px 3px 7px rgba(0,0,0,0.5);
+}
+
+#buttons-container {
+    position: fixed;
+    top: 60px;
+    left: 10px;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    border-radius: 5px;
+    z-index: 1000;
+}
+
+
+#buttons-container form {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#buttons-container label {
+    margin-right: 4px;
+    white-space: nowrap;
+}
+
+#deck-menu {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 220px;
+    height: 100vh;
+    background: rgba(255,255,255,0.95);
+    box-shadow: -2px 0 10px #0004;
+    overflow-y: auto;
+    z-index: 1200;
+    padding: 12px 6px 12px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.deck-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 6px 8px;
+    cursor: pointer;
+    border: 1px solid #ddd;
+    transition: background 0.2s;
+}
+.deck-menu-item:hover {
+    background: #e0e0e0;
+}
+.deck-menu-img {
+    width: 48px;
+    height: 67px;
+    object-fit: cover;
+    border-radius: 5px;
+    border: 1px solid #bbb;
+    background: #eee;
+}
+.deck-menu-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.deck-menu-name {
+    font-weight: bold;
+    font-size: 15px;
+    color: #222;
+    word-break: break-all;
+}
+.deck-menu-count {
+    font-size: 13px;
+    color: #555;
+}

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Card Table</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="controls">
+        <form id="uploadForm" enctype="multipart/form-data">
+            <label for="deckName">Deck Name:</label>
+            <input type="text" id="deckName" name="deckName" required>
+
+            <label for="deckImages">Create a Deck:</label>
+            <input type="file" id="deckImages" name="deckImages" multiple required>
+
+            <label for="cardBack">Card Back:</label>
+            <input type="file" id="cardBack" name="cardBack" accept=".png,.jpg,.jpeg,.webp">
+
+            <button type="submit">Upload Deck</button>
+        </form>
+    </div>
+
+    <div id="buttons-container">
+        <button id="cretePileBtn" type="button">Create Pile</button>
+        <button id="deckAddModeBtn" type="button">Add card to bottom deck</button>
+    </div>
+
+    <div id="deck-menu"></div>
+
+    <div id="game-board">
+        <!-- Decks and cards will be added here dynamically by JavaScript -->
+    </div>
+
+    <div id="card-modal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:2000;">
+        <img id="modal-img" src="" style="max-width:90vw; max-height:90vh; border-radius:12px; box-shadow:0 0 20px #000;">
+    </div>
+
+    <!-- Deck Search Modal -->
+    <div id="deck-search-modal" style="display:none; position:absolute; background:#fff; border-radius:8px; box-shadow:0 2px 12px #0008; padding:10px; z-index:3000; min-width:200px;">
+        <div id="deck-search-list" style="max-height:300px; overflow-y:auto;"></div>
+        <button id="deck-search-close" style="margin-top:8px;">Close</button>
+    </div>
+
+    <!-- Libraries -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+    <!-- Your Game Logic -->
+    <script src="client.js"></script>
+</body>
+</html>
