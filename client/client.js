@@ -382,6 +382,14 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+// Take card with 'E' key
+document.addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase() === 'e' && selectedElement && selectedElement.classList.contains('card')) {
+        e.preventDefault();
+        socket.emit('takeCard', { id: selectedElement.id });
+    }
+});
+
 // Remove card or deck from DOM when deleted
 socket.on('cardDeleted', (cardId) => {
     const el = document.getElementById(cardId);

@@ -334,6 +334,22 @@ io.on('connection', (socket) => {
         io.emit('deckCreated', gameState.decks[deckId]);
     });
 
+    socket.on('takeCard', (data) => {
+        const card = gameState.cards[data.id];
+        if (card) {
+            card.owner = socket.id;
+            card.isFaceUp = false;
+            // Send the real card only to the owner
+            socket.emit('cardDrawn', card);
+            // Send a hidden version to all other clients
+            socket.broadcast.emit('opponentCardDrawn', {
+                ...card,
+                src: '/assets/card-back.png', // or your default card back path
+                isFaceUp: false
+            });
+        }
+    });
+
     socket.on('disconnect', () => {
         console.log(`User disconnected: ${socket.id}`);
         // Here you could add logic to handle a player leaving (e.g., remove their cards)
