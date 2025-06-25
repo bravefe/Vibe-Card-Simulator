@@ -25,14 +25,18 @@ let playerCardBacks = {};
 // We'll use a dynamic destination based on a deck UUID
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
-        // If this is the first file, generate a deck folder and save it on req
-        if (!req.deckFolder) {
-            const deckId = `deck-${uuidv4()}`;
-            req.deckId = deckId;
-            req.deckFolder = path.join('uploads', deckId);
-            fs.mkdirSync(req.deckFolder, { recursive: true });
+        // Get deck name from the form field (works for multipart/form-data)
+        let deckNameRaw = req.body.deckName;
+        if (!deckNameRaw || typeof deckNameRaw !== 'string') {
+            deckNameRaw = 'untitled';
         }
-        cb(null, req.deckFolder);
+        // Sanitize deck name
+        const deckId = deckNameRaw.trim().replace(/[^a-zA-Z0-9-_]/g, '_');
+        const deckFolder = path.join('uploads', deckId);
+        if (!fs.existsSync(deckFolder)) {
+            fs.mkdirSync(deckFolder, { recursive: true });
+        }
+        cb(null, deckFolder);
     },
     filename: function(req, file, cb) {
         cb(null, uuidv4() + path.extname(file.originalname));
@@ -154,7 +158,7 @@ io.on('connection', (socket) => {
                 const dx = card.x - deck.x;
                 const dy = card.y - deck.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
-                if (distance < 15) {
+                if (distance < 20) {
                     // Merge card into deck at top or bottom
                     if (data.deckAddMode === 'top') {
                         deck.cards.push(card.src);
