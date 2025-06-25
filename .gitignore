@@ -25,4 +25,5 @@ build/
 logs/
 *.log
 
+*.bat
 #
