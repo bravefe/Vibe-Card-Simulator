@@ -15,7 +15,7 @@ yarn-error.log*
 Thumbs.db
 
 # Uploaded decks and images
-uploads/
+# uploads/
 
 # Build output
 dist/
