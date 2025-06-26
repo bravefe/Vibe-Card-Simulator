@@ -134,8 +134,11 @@ function renderCard(cardData) {
     cardEl.style.backgroundImage = `url('${cardData.src}')`;
 
     // Highlight border red if card is face down (hidden from anyone)
-    if (!cardData.isFaceUp) {
-        cardEl.classList.add('hidden-card');
+    // Only add 'hidden-card' if the card is face down AND has an owner (i.e., truly hidden from all)
+    if (!cardData.isFaceUp && cardData.owner === null) {
+        cardEl.classList.remove('hidden-card'); // No red border for public face-down cards
+    } else if (!cardData.isFaceUp) {
+        cardEl.classList.add('hidden-card'); // Red border for hidden cards with owner
     } else {
         cardEl.classList.remove('hidden-card');
     }
@@ -387,6 +390,13 @@ document.addEventListener('keydown', (e) => {
     if (e.key.toLowerCase() === 'e' && selectedElement && selectedElement.classList.contains('card')) {
         e.preventDefault();
         socket.emit('takeCard', { id: selectedElement.id });
+    }
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase() === 'd' && selectedElement && selectedElement.classList.contains('deck')) {
+        e.preventDefault();
+        socket.emit('drawCardFaceDown', { deckId: selectedElement.id, faceDown: true });
     }
 });
 

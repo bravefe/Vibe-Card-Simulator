@@ -223,6 +223,36 @@ io.on('connection', (socket) => {
         }
     });
 
+    socket.on('drawCardFaceDown', (data) => {
+    let deckId;
+    if (typeof data === 'object') {
+        deckId = data.deckId;
+    } else {
+        deckId = data;
+    }
+    const deck = gameState.decks[deckId];
+    if (deck && deck.cards.length > 0) {
+        const cardSrc = deck.cards.pop();
+        const cardId = `card-${uuidv4()}`;
+        gameState.cards[cardId] = {
+            id: cardId,
+            src: cardSrc,
+            x: deck.x + 50,
+            y: deck.y + 50,
+            rotation: 0,
+            isFaceUp: false, // Always face down
+            owner: null,     // No owner, public
+            deckId: deckId
+        };
+        // Send to all clients as a hidden card
+        io.emit('opponentCardDrawn', {
+            ...gameState.cards[cardId]
+        });
+        io.emit('deckUpdated', { id: deckId, cardCount: deck.cards.length });
+        io.emit('deckCreated', gameState.decks[deckId]);
+    }
+    });
+
     socket.on('flipCard', (cardId) => {
         const card = gameState.cards[cardId];
         if (card) {
