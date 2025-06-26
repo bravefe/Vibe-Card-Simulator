@@ -537,3 +537,24 @@ renderDeckMenu();
 socket.on('deckCreated', () => {
     renderDeckMenu();
 });
+
+const deckMenu = document.getElementById('deck-menu');
+const deckMenuToggle = document.getElementById('deck-menu-toggle');
+deckMenuToggle.onclick = () => {
+    deckMenu.classList.toggle('closed');
+};
+
+const shortcutsBtn = document.getElementById('show-shortcuts-btn');
+const shortcutsPopup = document.getElementById('keyboard-shortcuts');
+
+shortcutsBtn.onclick = (e) => {
+    e.stopPropagation();
+    shortcutsPopup.classList.add('open');
+};
+
+// Hide shortcuts when clicking anywhere else
+document.addEventListener('mousedown', (e) => {
+    if (shortcutsPopup.classList.contains('open') && !shortcutsPopup.contains(e.target) && e.target !== shortcutsBtn) {
+        shortcutsPopup.classList.remove('open');
+    }
+});

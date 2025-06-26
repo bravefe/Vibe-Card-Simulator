@@ -28,7 +28,7 @@
         <button id="deckAddModeBtn" type="button">Add card to bottom deck</button>
     </div>
 
-    <div id="deck-menu"></div>
+    <div id="deck-menu" class="closed"></div>
 
     <div id="game-board">
         <!-- Decks and cards will be added here dynamically by JavaScript -->
@@ -42,6 +42,22 @@
     <div id="deck-search-modal" style="display:none; position:absolute; background:#fff; border-radius:8px; box-shadow:0 2px 12px #0008; padding:10px; z-index:3000; min-width:200px;">
         <div id="deck-search-list" style="max-height:300px; overflow-y:auto;"></div>
         <button id="deck-search-close" style="margin-top:8px;">Close</button>
+    </div>
+
+    <!-- Toggle Button for Deck Menu -->
+    <button id="deck-menu-toggle">
+        <img src="assets/deck-icon.png" alt="Deck Menu">
+    </button>
+
+    <button id="show-shortcuts-btn" title="Show Keyboard Shortcuts">☰</button>
+
+    <div id="keyboard-shortcuts">
+        <h1>Key-Shortcuts</h1>
+        <b>1-9:</b> chose layer<br>
+        <b>F:</b> flipcard<br>
+        <b>R:</b> rotate card<br>
+        <b>D:</b> draw card facedown<br>
+        <b>E:</b> hide card to other player<br>
     </div>
 
     <!-- Libraries -->
