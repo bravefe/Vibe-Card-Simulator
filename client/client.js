@@ -549,12 +549,21 @@ const shortcutsPopup = document.getElementById('keyboard-shortcuts');
 
 shortcutsBtn.onclick = (e) => {
     e.stopPropagation();
-    shortcutsPopup.classList.add('open');
+    if (shortcutsPopup.classList.contains('open')) {
+        shortcutsPopup.classList.remove('open');
+    } else {
+        shortcutsPopup.classList.add('open');
+    }
 };
 
+// shortcutsBtn.onclick = (e) => {
+//     e.stopPropagation();
+//     shortcutsPopup.classList.add('open');
+// };
+
 // Hide shortcuts when clicking anywhere else
-document.addEventListener('mousedown', (e) => {
-    if (shortcutsPopup.classList.contains('open') && !shortcutsPopup.contains(e.target) && e.target !== shortcutsBtn) {
-        shortcutsPopup.classList.remove('open');
-    }
-});
+// document.addEventListener('mousedown', (e) => {
+//     if (shortcutsPopup.classList.contains('open') && !shortcutsPopup.contains(e.target) && e.target !== shortcutsBtn) {
+//         shortcutsPopup.classList.remove('open');
+//     }
+// });
