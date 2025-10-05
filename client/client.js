@@ -1,5 +1,330 @@
+// --- Card Library Menu Logic ---
+const libraryToggle = document.getElementById('library-toggle');
+const libraryModal = document.getElementById('library-modal');
+const libraryGameList = document.getElementById('library-game-list');
+const libraryPackList = document.getElementById('library-pack-list');
+const libraryCardGrid = document.getElementById('library-card-grid');
+const libraryDeckList = document.getElementById('library-deck-list');
+const libraryDeckName = document.getElementById('library-deck-name');
+const libraryCardBack = document.getElementById('library-card-back');
+const librarySaveBtn = document.getElementById('library-save-btn');
+const libraryExitBtn = document.getElementById('library-exit-btn');
+
+// Add card back preview functionality
+libraryCardBack.addEventListener('change', function(e) {
+    const preview = document.getElementById('card-back-preview');
+    const previewImg = document.getElementById('card-back-preview-img');
+    
+    if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            preview.style.display = 'block';
+        }
+        reader.readAsDataURL(this.files[0]);
+    } else {
+        preview.style.display = 'none';
+    }
+});
+
+let libraryState = {
+    selectedGame: null,
+    selectedPack: null,
+    cards: [], // All cards in current view
+    deck: {}, // { cardSrc: { count, title, imgSrc } }
+    packs: [],
+    games: [],
+};
+
+// Example: games and packs structure (should be fetched from server or built from folder structure)
+// For demo, hardcode games/packs. Replace with API later.
+// Fetch games and packs from server (scalable)
+async function fetchLibraryStructure() {
+    const res = await fetch('/api/library-structure');
+    const data = await res.json();
+    libraryState.games = data.games;
+    libraryState.packs = data.packs;
+    renderLibraryGames();
+    renderLibraryPacks();
+    renderLibraryCards();
+}
+fetchLibraryStructure();
+
+function showLibraryModal() {
+    libraryModal.style.display = 'flex';
+    renderLibraryGames();
+    renderLibraryPacks();
+    renderLibraryCards();
+    renderLibraryDeck();
+}
+function hideLibraryModal() {
+    libraryModal.style.display = 'none';
+}
+libraryToggle.onclick = showLibraryModal;
+libraryExitBtn.onclick = hideLibraryModal;
+
+async function saveDeckFromLibrary() {
+    if (Object.keys(libraryState.deck).length === 0) {
+        alert('Please add some cards to your deck first!');
+        return;
+    }
+
+    if (!libraryDeckName.value.trim()) {
+        alert('Please enter a deck name!');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('deckName', libraryDeckName.value.trim());
+
+    // Add all selected cards as files
+    const addedCards = new Set(); // To track unique cards
+    for (const [cardSrc, cardInfo] of Object.entries(libraryState.deck)) {
+        for (let i = 0; i < cardInfo.count; i++) {
+            try {
+                const response = await fetch(cardSrc);
+                const blob = await response.blob();
+                formData.append('deckImages', blob, `card_${addedCards.size}.png`);
+                addedCards.add(cardSrc);
+            } catch (error) {
+                console.error('Error fetching card:', cardSrc, error);
+            }
+        }
+    }
+
+    // Add card back if selected
+    if (libraryCardBack.files[0]) {
+        formData.append('cardBack', libraryCardBack.files[0]);
+    }
+
+    try {
+        const response = await fetch('/upload', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            hideLibraryModal();
+            // Clear the library state
+            libraryState.deck = {};
+            libraryDeckName.value = '';
+            if (libraryCardBack.value) libraryCardBack.value = '';
+            console.log('Deck saved successfully:', result);
+        } else {
+            throw new Error('Failed to save deck');
+        }
+    } catch (error) {
+        console.error('Error saving deck:', error);
+        alert('Failed to save deck. Please try again.');
+    }
+}
+
+// Attach save function to save button
+librarySaveBtn.onclick = saveDeckFromLibrary;
+
+function renderLibraryGames() {
+    libraryGameList.innerHTML = '';
+    libraryState.games.forEach(game => {
+        const btn = document.createElement('button');
+        btn.className = 'library-game-btn' + (libraryState.selectedGame === game.id ? ' selected' : '');
+        btn.textContent = game.name;
+        btn.onclick = () => {
+            libraryState.selectedGame = game.id;
+            libraryState.selectedPack = null;
+            renderLibraryGames();
+            renderLibraryPacks();
+            renderLibraryCards();
+        };
+        libraryGameList.appendChild(btn);
+    });
+}
+function renderLibraryPacks() {
+    libraryPackList.innerHTML = '';
+    const packs = libraryState.selectedGame ? libraryState.packs[libraryState.selectedGame] : [];
+    packs.forEach(pack => {
+        const btn = document.createElement('button');
+        btn.className = 'library-pack-btn' + (libraryState.selectedPack === pack ? ' selected' : '');
+        btn.textContent = pack;
+        btn.onclick = () => {
+            libraryState.selectedPack = pack;
+            renderLibraryPacks();
+            renderLibraryCards();
+        };
+        libraryPackList.appendChild(btn);
+    });
+    // Add 'All' button to show all cards in game
+    if (libraryState.selectedGame) {
+        const allBtn = document.createElement('button');
+        allBtn.className = 'library-pack-btn' + (libraryState.selectedPack === null ? ' selected' : '');
+        allBtn.textContent = 'All';
+        allBtn.onclick = () => {
+            libraryState.selectedPack = null;
+            renderLibraryPacks();
+            renderLibraryCards();
+        };
+        libraryPackList.insertBefore(allBtn, libraryPackList.firstChild);
+    }
+}
+
+function getCardListForCurrentSelection() {
+    // For demo, build URLs from folder structure. Replace with API for real use.
+    let cards = [];
+    if (!libraryState.selectedGame) return cards;
+    // Fetch card list from server for selected game/pack
+    // API: /api/library-cards?game=...&pack=...
+    // This should return [{src, title}]
+    // For now, use synchronous fetch (can optimize later)
+    const params = new URLSearchParams();
+    params.append('game', libraryState.selectedGame);
+    if (libraryState.selectedPack) params.append('pack', libraryState.selectedPack);
+    // Synchronous fetch (blocking)
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', `/api/library-cards?${params.toString()}`, false);
+    xhr.send(null);
+    if (xhr.status === 200) {
+        try {
+            cards = JSON.parse(xhr.responseText);
+        } catch (e) { cards = []; }
+    }
+    return cards;
+}
+
+function renderLibraryCards() {
+    libraryCardGrid.innerHTML = '';
+    libraryState.cards = getCardListForCurrentSelection();
+    libraryState.cards.forEach(card => {
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'library-card';
+        
+        const cardImage = document.createElement('div');
+        cardImage.className = 'library-card-image';
+        cardImage.style.backgroundImage = `url('${card.src}')`;
+        
+        // Add right-click inspection
+        cardImage.addEventListener('contextmenu', (e) => {
+            e.preventDefault(); // Prevent default context menu
+            showCardModal({ src: card.src });
+        });
+        
+        if (libraryState.deck[card.src]) cardDiv.classList.add('selected');
+        
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'library-card-title';
+        titleDiv.textContent = card.title;
+        
+        cardDiv.appendChild(cardImage);
+        cardDiv.appendChild(titleDiv);
+        // Add to deck on click
+        cardDiv.onclick = () => {
+            if (!libraryState.deck[card.src]) {
+                libraryState.deck[card.src] = { count: 1, title: card.title, imgSrc: card.src };
+            } else {
+                libraryState.deck[card.src].count++;
+            }
+            renderLibraryCards();
+            renderLibraryDeck();
+        };
+
+        // Right-click to inspect card
+        // cardDiv.oncontextmenu = (e) => {
+        //     e.preventDefault();
+        //     showCardModal({ id: card.title, src: card.src, isFaceUp: true, x: 0, y: 0, rotation: 0, owner: null });
+        // };
+        libraryCardGrid.appendChild(cardDiv);
+    });
+}
+
+function renderLibraryDeck() {
+    libraryDeckList.innerHTML = '';
+    Object.values(libraryState.deck).forEach(card => {
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'library-deck-card';
+        // Card image with click to inspect
+        const img = document.createElement('img');
+        img.className = 'library-deck-card-img';
+        img.src = card.imgSrc;
+        img.style.cursor = 'zoom-in';
+        
+        img.oncontextmenu = (e) => {
+            e.preventDefault();
+            e.stopPropagation(); // Prevent any parent click handlers
+            showCardModal({ src: card.imgSrc });
+        };
+
+        cardDiv.appendChild(img);
+        // Card title
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'library-deck-card-title';
+        titleDiv.textContent = card.title;
+        cardDiv.appendChild(titleDiv);
+        // Card count (click to increase)
+        const countDiv = document.createElement('div');
+        countDiv.className = 'library-deck-card-count';
+        countDiv.textContent = card.count;
+        countDiv.onclick = () => {
+            card.count++;
+            renderLibraryDeck();
+        };
+        cardDiv.appendChild(countDiv);
+        // Remove button
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'library-deck-card-remove';
+        removeBtn.textContent = '✕';
+        removeBtn.onclick = () => {
+            delete libraryState.deck[card.imgSrc];
+            renderLibraryCards();
+            renderLibraryDeck();
+        };
+        cardDiv.appendChild(removeBtn);
+        libraryDeckList.appendChild(cardDiv);
+    });
+}
+
 const socket = io();
 const gameBoard = document.getElementById('game-board');
+// --- Zoom & Pan State ---
+let zoomLevel = 1;
+let panX = 0;
+let panY = 0;
+let isPanning = false;
+let panStart = { x: 0, y: 0 };
+let mouseStart = { x: 0, y: 0 };
+
+function updateBoardTransform() {
+    gameBoard.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+    gameBoard.style.transformOrigin = '0 0';
+}
+
+
+// --- Right Mouse Drag Pan ---
+gameBoard.addEventListener('mousedown', (e) => {
+    if (e.button === 2) { // Right mouse button
+        isPanning = true;
+        panStart.x = panX;
+        panStart.y = panY;
+        mouseStart.x = e.clientX;
+        mouseStart.y = e.clientY;
+        document.body.style.cursor = 'grab';
+    }
+});
+window.addEventListener('mousemove', (e) => {
+    if (isPanning) {
+        panX = panStart.x + (e.clientX - mouseStart.x);
+        panY = panStart.y + (e.clientY - mouseStart.y);
+        updateBoardTransform();
+    }
+});
+window.addEventListener('mouseup', (e) => {
+    if (isPanning && e.button === 2) {
+        isPanning = false;
+        document.body.style.cursor = '';
+    }
+});
+// Prevent context menu on right drag
+gameBoard.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+});
 
 let selectedElement = null; // To track the selected card for rotation
 const latestDecks = {}; // Add this line at the top
@@ -328,9 +653,13 @@ interact('.card, .deck').draggable({
     listeners: {
         move(event) {
             const target = event.target;
-            // Center the card/deck under the mouse
-            const x = event.clientX - target.offsetWidth / 2;
-            const y = event.clientY - target.offsetHeight / 2;
+            // Get mouse position relative to board's parent (untransformed)
+            const parentRect = gameBoard.parentElement.getBoundingClientRect();
+            const mouseX = event.clientX - parentRect.left;
+            const mouseY = event.clientY - parentRect.top;
+            // Convert to board coordinates
+            const x = (mouseX - panX) / zoomLevel - target.offsetWidth / 2;
+            const y = (mouseY - panY) / zoomLevel - target.offsetHeight / 2;
             target.style.left = `${x}px`;
             target.style.top = `${y}px`;
             target.setAttribute('data-x', x);
@@ -338,7 +667,7 @@ interact('.card, .deck').draggable({
 
             // Emit position on every move for cards (not decks)
             if (target.classList.contains('card')) {
-                socket.emit('moveCard', { id: target.id, x: x, y: y, deckAddMode }); // <-- add deckAddMode
+                socket.emit('moveCard', { id: target.id, x: x, y: y, deckAddMode });
             } else if (target.classList.contains('deck')) {
                 socket.emit('moveDeck', { id: target.id, x: x, y: y });
             }
@@ -470,12 +799,123 @@ function showCardModal(cardData) {
     const modalImg = document.getElementById('modal-img');
     modalImg.src = cardData.src;
     modal.style.display = 'flex';
+    // --- Modal Zoom & Pan State ---
+    let modalZoom = 1;
+    let modalPanX = 0;
+    let modalPanY = 0;
+    let modalIsPanning = false;
+    let modalPanStart = { x: 0, y: 0 };
+    let modalMouseStart = { x: 0, y: 0 };
+
+    function updateModalImgTransform() {
+        modalImg.style.transform = `translate(${modalPanX}px, ${modalPanY}px) scale(${modalZoom})`;
+        modalImg.style.transformOrigin = '0 0'; // Fix: use top-left origin
+    }
+
+    window._modalZoomHandler = function(e) {
+        if (modal.style.display !== 'flex') return false;
+        e.preventDefault();
+        const zoomIntensity = 0.15;
+        const oldZoom = modalZoom;
+        let newZoom = oldZoom;
+        if (e.deltaY < 0) {
+            newZoom = Math.min(oldZoom + zoomIntensity, 5);
+        } else {
+            newZoom = Math.max(oldZoom - zoomIntensity, 0.2);
+        }
+        // Always zoom to mouse position
+        const rect = modalImg.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        modalPanX = mx - (mx - modalPanX) * (newZoom / oldZoom);
+        modalPanY = my - (my - modalPanY) * (newZoom / oldZoom);
+        modalZoom = newZoom;
+        updateModalImgTransform();
+        return true;
+    };
+
+    // Right mouse drag pan
+    modalImg.onmousedown = function(e) {
+        if (e.button === 2) {
+            modalIsPanning = true;
+            modalPanStart.x = modalPanX;
+            modalPanStart.y = modalPanY;
+            modalMouseStart.x = e.clientX;
+            modalMouseStart.y = e.clientY;
+            modalImg.style.cursor = 'grab';
+        }
+    };
+    window.addEventListener('mousemove', modalImgPanMove);
+    window.addEventListener('mouseup', modalImgPanEnd);
+    function modalImgPanMove(e) {
+        if (modalIsPanning) {
+            modalPanX = modalPanStart.x + (e.clientX - modalMouseStart.x);
+            modalPanY = modalPanStart.y + (e.clientY - modalMouseStart.y);
+            updateModalImgTransform();
+        }
+    }
+    function modalImgPanEnd(e) {
+        if (modalIsPanning && e.button === 2) {
+            modalIsPanning = false;
+            modalImg.style.cursor = '';
+        }
+    }
+    // Prevent context menu on right drag
+    modalImg.oncontextmenu = function(e) { e.preventDefault(); };
+
+    // Reset zoom/pan when modal closes
+    modal._resetModalImg = function() {
+        modalZoom = 1;
+        modalPanX = 0;
+        modalPanY = 0;
+        updateModalImgTransform();
+        window.removeEventListener('mousemove', modalImgPanMove);
+        window.removeEventListener('mouseup', modalImgPanEnd);
+    };
+    updateModalImgTransform();
 }
 
 // Hide the card modal when clicking anywhere on it
 document.getElementById('card-modal').onclick = () => {
-    document.getElementById('card-modal').style.display = 'none';
+    const modal = document.getElementById('card-modal');
+    modal.style.display = 'none';
+    if (modal._resetModalImg) modal._resetModalImg();
+    window._modalZoomHandler = null;
 };
+
+// --- Global Wheel Zoom Handler ---
+window.addEventListener('wheel', function(e) {
+    // If modal is open, zoom modal image
+    if (window._modalZoomHandler && window._modalZoomHandler(e)) return;
+    // Otherwise, zoom board
+    if (e.ctrlKey) return; // Let browser zoom if ctrl is held
+    // Only zoom if not over a deck/card search modal or deck menu
+
+    const deckSearchModal = document.getElementById('deck-search-modal');
+    if (deckSearchModal && deckSearchModal.style.display === 'block') return;
+
+    const deckMenu = document.getElementById('deck-menu');
+    if (deckMenu && deckMenu.contains(document.elementFromPoint(e.clientX, e.clientY))) return;
+
+
+    // Board zoom logic
+    e.preventDefault();
+    const zoomIntensity = 0.1;
+    const oldZoom = zoomLevel;
+    let newZoom = oldZoom;
+    if (e.deltaY < 0) {
+        newZoom = Math.min(oldZoom + zoomIntensity, 3);
+    } else {
+        newZoom = Math.max(oldZoom - zoomIntensity, 0.2);
+    }
+    // Use logical center of board as pivot for zoom
+    const centerX = gameBoard.offsetWidth / 2;
+    const centerY = gameBoard.offsetHeight / 2;
+    panX = centerX - (centerX - panX) * (newZoom / oldZoom);
+    panY = centerY - (centerY - panY) * (newZoom / oldZoom);
+    zoomLevel = newZoom;
+    updateBoardTransform();
+});
 
 const deckAddModeBtn = document.getElementById('deckAddModeBtn');
 deckAddModeBtn.onclick = () => {
@@ -556,14 +996,9 @@ shortcutsBtn.onclick = (e) => {
     }
 };
 
-// shortcutsBtn.onclick = (e) => {
-//     e.stopPropagation();
-//     shortcutsPopup.classList.add('open');
-// };
-
 // Hide shortcuts when clicking anywhere else
-// document.addEventListener('mousedown', (e) => {
-//     if (shortcutsPopup.classList.contains('open') && !shortcutsPopup.contains(e.target) && e.target !== shortcutsBtn) {
-//         shortcutsPopup.classList.remove('open');
-//     }
-// });
+document.addEventListener('mousedown', (e) => {
+    if (shortcutsPopup.classList.contains('open') && !shortcutsPopup.contains(e.target) && e.target !== shortcutsBtn) {
+        shortcutsPopup.classList.remove('open');
+    }
+});

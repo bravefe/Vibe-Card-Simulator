@@ -2,7 +2,11 @@ body {
     font-family: sans-serif;
     margin: 0;
     overflow: hidden;
-    background-color: #3d3d3d;
+    background: linear-gradient(135deg, #3f4042 0%, #88898a 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
 }
 
 #controls {
@@ -32,10 +36,231 @@ body {
 
 #game-board {
     position: relative;
-    width: 100vw;
-    height: 100vh;
+    width: 2000px;
+    height: 1100px;
     background-color: #004d00; /* Green felt color */
     background-image: radial-gradient(circle, #006a00, #004d00);
+    box-shadow: 0 0 40px #000a;
+    /* border-radius: 24px; */
+}
+
+
+#library-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(33,150,243,0.98);
+    z-index: 5000;
+    flex-direction: column;
+    font-size: 16px;
+}
+
+#library-modal[open] {
+    display: flex;
+}
+
+#library-sidebar {
+    width: 260px;
+    background: #fff;
+    box-shadow: 2px 0 12px #0003;
+    padding: 18px 10px;
+    overflow-y: auto;
+}
+
+#library-game-list, #library-pack-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.library-game-btn, .library-pack-btn {
+    background: #e3e3e3;
+    border: 1px solid #bbb;
+    border-radius: 6px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-bottom: 4px;
+    transition: background 0.2s;
+}
+.library-game-btn.selected, .library-pack-btn.selected {
+    background: #2196f3;
+    color: #fff;
+    border-color: #2196f3;
+}
+.library-game-btn:hover, .library-pack-btn:hover {
+    background: #b3e5fc;
+}
+
+#library-card-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 120px);
+    gap: 16px;
+    padding: 18px;
+    overflow-y: auto;
+    background: transparent;
+}
+
+.library-card {
+    width: 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    position: relative;
+}
+
+.library-card-image {
+    width: 100%;
+    height: 154px;
+    border-radius: 8px;
+    border: 2px solid #bbb;
+    background: #fff;
+    box-shadow: 2px 2px 8px #0002;
+    background-size: cover;
+    background-position: center;
+    transition: border 0.2s, box-shadow 0.2s, transform 0.2s;
+    cursor: pointer;
+}
+
+.library-card.selected .library-card-image {
+    border: 2px solid #2196f3;
+    box-shadow: 0 0 12px #2196f3;
+}
+
+.library-card:hover .library-card-image {
+    border: 2px solid #1976d2;
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.library-card .library-card-title {
+    width: 100%;
+    color: #fff;
+    font-size: 13px;
+    text-align: center;
+    background: rgba(33,150,243,0.85);
+    border-radius: 4px;
+    padding: 2px 0;
+    margin-top: -2px;
+}
+
+#library-deck-builder {
+    width: 340px;
+    background: #f5f5f5;
+    box-shadow: -2px 0 12px #0003;
+    padding: 18px 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+#library-deck-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.library-deck-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    border-radius: 6px;
+    padding: 6px 8px;
+    border: 1px solid #bbb;
+    box-shadow: 1px 1px 6px #0001;
+    position: relative;
+}
+.library-deck-card-img {
+    width: 48px;
+    height: 67px;
+    object-fit: cover;
+    border-radius: 5px;
+    border: 1px solid #bbb;
+    background: #eee;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.library-deck-card-img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.library-deck-card-title {
+    flex: 1;
+    font-size: 14px;
+    color: #222;
+    word-break: break-all;
+}
+.library-deck-card-count {
+    font-size: 15px;
+    color: #2196f3;
+    background: #e3f2fd;
+    border-radius: 8px;
+    padding: 2px 8px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-left: 8px;
+    transition: background 0.2s;
+}
+.library-deck-card-count:hover {
+    background: #bbdefb;
+}
+.library-deck-card-remove {
+    color: #f44336;
+    background: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 18px;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: background 0.2s;
+}
+.library-deck-card-remove:hover {
+    background: #ffcdd2;
+}
+
+#library-save-btn {
+    background: #2196f3;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: background 0.2s;
+}
+#library-save-btn:hover {
+    background: #1976d2;
+}
+
+#library-exit-btn {
+    background: #dc3545;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    transition: background 0.2s;
+    z-index: 5001;
+}
+#library-exit-btn:hover {
+    background: #c82333;
 }
 
 .card, .deck {
@@ -238,62 +463,45 @@ body {
 #deck-menu.closed {
     display: none;
 }
-#deck-menu-toggle {
+
+#deck-menu-toggle, #library-toggle, #show-shortcuts-btn {
     position: fixed;
-    top: 10px;
-    right: 15px;
     z-index: 1300;
     padding: 0;
-    /* background: transparent; */
     background-color: white;
-    /* border: none; */
     border: 2px solid black;
     border-radius: 50%;
     width: 50px;
     height: 50px;
     cursor: pointer;
-    /* box-shadow: 0 2px 8px #0002; */
     display: flex;
     align-items: center;
     justify-content: center;
 }
-#deck-menu-toggle:hover {
+
+#deck-menu-toggle {
+    top: 10px;
+    right: 15px;
+}
+#library-toggle {
+    top: 10px;
+    right: 75px;
+}
+#show-shortcuts-btn {
+    top: 10px;
+    right: 135px;
+    font-size: 1.5rem;
+}
+#deck-menu-toggle:hover, #library-toggle:hover, #show-shortcuts-btn:hover {
     background-color: #838383;
 }
-
-#deck-menu-toggle:active {
+#deck-menu-toggle:active, #library-toggle:active, #show-shortcuts-btn:active {
     background-color: #242424;
 }
-
-#deck-menu-toggle img {
+#deck-menu-toggle img, #library-toggle img {
     width: 38px;
     height: 38px;
     display: block;
-}
-
-#show-shortcuts-btn {
-    position: fixed;
-    top: 10px;
-    right: 75px;
-    z-index: 1300;
-    padding: 0;
-    background-color: white;
-    border: 2px solid black;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-}
-#show-shortcuts-btn:hover {
-    background-color: #838383;
-}
-
-#show-shortcuts-btn:active {
-    background-color: #242424;
 }
 
 #keyboard-shortcuts {

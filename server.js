@@ -48,8 +48,50 @@ const upload = multer({ storage: storage });
 // Serve the client files (HTML, CSS, JS) and the uploaded images
 app.use(express.static(path.join(__dirname, 'client')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/library', express.static(path.join(__dirname, 'library')));
 
 // --- API Endpoint for Deck Upload ---
+// --- API Endpoint: Get Library Structure (Games & Packs) ---
+app.get('/api/library-structure', (req, res) => {
+    const libraryDir = path.join(__dirname, 'library');
+    if (!fs.existsSync(libraryDir)) return res.json({ games: [], packs: {} });
+    const games = fs.readdirSync(libraryDir).filter(f => fs.statSync(path.join(libraryDir, f)).isDirectory());
+    const packs = {};
+    games.forEach(game => {
+        const gamePath = path.join(libraryDir, game);
+        packs[game] = fs.readdirSync(gamePath).filter(f => fs.statSync(path.join(gamePath, f)).isDirectory());
+    });
+    res.json({ games: games.map(g => ({ id: g, name: g })), packs });
+});
+
+// --- API Endpoint: Get Card List for Game/Pack ---
+app.get('/api/library-cards', (req, res) => {
+    const game = req.query.game;
+    const pack = req.query.pack;
+    if (!game) return res.json([]);
+    const basePath = pack ? path.join(__dirname, 'library', game, pack) : path.join(__dirname, 'library', game);
+    if (!fs.existsSync(basePath)) return res.json([]);
+    let cardFiles = [];
+    if (pack) {
+        cardFiles = fs.readdirSync(basePath).filter(f => /\.(png|jpg|jpeg|webp)$/i.test(f));
+        cardFiles.sort();
+        res.json(cardFiles.map(f => ({ src: `/library/${game}/${pack}/${f}`, title: f.replace(/\.[^.]+$/, '') })));
+    } else {
+        // All cards in all packs
+        const packs = fs.readdirSync(basePath).filter(f => fs.statSync(path.join(basePath, f)).isDirectory());
+        let allCards = [];
+        packs.forEach(p => {
+            const packPath = path.join(basePath, p);
+            const files = fs.readdirSync(packPath).filter(f => /\.(png|jpg|jpeg|webp)$/i.test(f));
+            files.forEach(f => {
+                allCards.push({ src: `/library/${game}/${p}/${f}`, title: f.replace(/\.[^.]+$/, '') });
+            });
+        });
+        allCards.sort((a, b) => a.title.localeCompare(b.title));
+        res.json(allCards);
+    }
+});
+
 app.post('/upload', upload.fields([
     { name: 'deckImages', maxCount: 100 },
     { name: 'cardBack', maxCount: 1 }
